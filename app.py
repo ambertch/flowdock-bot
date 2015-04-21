@@ -46,23 +46,23 @@ def postMessageToFlow(flow_name, content, thread_id = None):
   except:
     pass
 
-def getGiphyUrlFromContent(content):
+def getGiphyUrlFromTag(tag):
   
-  tag = ''
+  _tag = ''
 
   try:
-    tag = urllib.quote_plus(content.split(' ', 1)[1])
+    _tag = urllib.quote_plus(tag)
   except:
     pass
 
   try:
-    if len(tag) != 0:
-      giphy = requests.get(random_giphy + '&tag=%s' % tag).json().get('data',{}).get('image_original_url','')
+    if len(_tag) != 0:
+      giphy = requests.get(random_giphy + '&tag=%s' % _tag).json().get('data',{}).get('image_original_url','')
     else:
       giphy = requests.get(random_giphy).json().get('data',{}).get('image_original_url','')  
   except:
     giphy = 'Failed to find something funny. Whoops.'
-    print 'Failed to find something for the following tag: %s' % tag
+    print 'Failed to find something for the following tag: %s' % _tag
     pass
 
   return giphy
@@ -75,10 +75,25 @@ for data in gen:
     if isinstance(data, dict):
       if data.get('event','') == 'message':
 
-        content = data.get('content','')
         thread_id = data.get('thread_id', None)
         flow_name = 'main'
         user_name = 'FlowBot'
+        command = ''
+        command_args = ''
+
+        try:
+          command = data.get('content','')[1:]
+          command_args = command.split(' ', 1)
+          if len(command_args) > 1:
+            command = command_args[0]
+            command_args = command_args[1]
+          else:
+            command_args = ''
+        except:
+          pass
+
+        if (len(command) == 0):
+          continue
 
         try:
           flow_name = getFlowNameFromId(data.get('flow'))
@@ -86,15 +101,15 @@ for data in gen:
         except:
           pass
 
-        if content.startswith('\giphy'):
+        if command == 'giphy':
 
           try:
-            message = getGiphyUrlFromContent(content)
+            message = getGiphyUrlFromTag(command_args)
             postMessageToFlow(flow_name, message, thread_id)
           except:
             pass
 
-        elif content.startswith('\\roll'):
+        elif command == 'roll':
 
           try:
             message = '%s rolled: %s' % (user_name, random.randint(0, 100),)
@@ -102,7 +117,7 @@ for data in gen:
           except:
             pass
 
-        elif content.startswith('\\dance'):
+        elif command == 'dance':
 
           try:
             message = '%s bursts into dance~' % (user_name,)
