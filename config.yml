@@ -1,0 +1,7 @@
+FLOWDOCK:
+  API_TOKEN: '<TOKEN_HERE>'
+  ORGANIZATION: '<ORG_HERE>'
+  FLOWS:
+    - 'main'
+    - 'testnonsense'
+    - 'inappropriate-comments'
