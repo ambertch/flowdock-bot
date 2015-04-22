@@ -72,86 +72,86 @@ stream = JSONStream(api_token)
 gen = stream.fetch(fetch_flows)
 
 for data in gen:
-    if isinstance(data, dict):
-      if data.get('event','') == 'message':
+  if isinstance(data, dict):
+    if data.get('event','') == 'message':
 
-        thread_id = data.get('thread_id', None)
-        flow_name = 'main'
-        user_name = 'FlowBot'
-        command = ''
-        command_args = ''
-        message = ''
+      thread_id = data.get('thread_id', None)
+      flow_name = 'main'
+      user_name = 'FlowBot'
+      command = ''
+      command_args = ''
+      message = ''
+
+      try:
+        command = data.get('content','')[1:]
+        command_args = command.split(' ', 1)
+        if len(command_args) > 1:
+          command = command_args[0]
+          command_args = command_args[1]
+        else:
+          command_args = ''
+      except:
+        pass
+
+      if (len(command) == 0):
+        continue
+
+      try:
+        flow_name = getFlowNameFromId(data.get('flow'))
+        user_name = getUserNameFromID(int(data.get('user')))
+      except:
+        pass
+
+      if command == 'giphy':
 
         try:
-          command = data.get('content','')[1:]
-          command_args = command.split(' ', 1)
-          if len(command_args) > 1:
-            command = command_args[0]
-            command_args = command_args[1]
+          message = getGiphyUrlFromTag(command_args)
+        except:
+          pass
+
+      elif command == 'roll':
+
+        try:
+          message = '%s rolled: %s' % (user_name, random.randint(0, 100),)
+        except:
+          pass
+
+      elif command == 'dance':
+
+        try:
+          if len(command_args) > 0:
+            message = '%s bursts into dance with %s~' % (user_name, command_args)
           else:
-            command_args = ''
+            message = '%s bursts into dance~' % (user_name,)
         except:
           pass
 
-        if (len(command) == 0):
-          continue
+      elif command in ['vomit','barf','shit','poop']:
 
         try:
-          flow_name = getFlowNameFromId(data.get('flow'))
-          user_name = getUserNameFromID(int(data.get('user')))
+          if len(command_args) > 0:
+            message = '%s %ss all over %s. Gross!' % (user_name, command, command_args)
+          else:
+            message = '%s %ss all over the place. Gross!' % (user_name, command,)
         except:
           pass
 
-        if command == 'giphy':
+      elif command == 'sandwich':
 
-          try:
-            message = getGiphyUrlFromTag(command_args)
-          except:
-            pass
+        try:
+          if len(command_args) > 0:
+            message = '%s makes a tasty sandwich for %s' % (user_name, command_args)
+          else:
+            message = 'FlowBot makes a tasty sandwich for %s' % user_name
+        except:
+          pass
 
-        elif command == 'roll':
+      elif command == 'chuck':
 
-          try:
-            message = '%s rolled: %s' % (user_name, random.randint(0, 100),)
-          except:
-            pass
+        try:
+          message = requests.get('http://api.icndb.com/jokes/random').json().get('value',{}).get('joke','')
+        except:
+          pass
 
-        elif command == 'dance':
-
-          try:
-            if len(command_args) > 0:
-              message = '%s bursts into dance with %s~' % (user_name, command_args)
-            else:
-              message = '%s bursts into dance~' % (user_name,)
-          except:
-            pass
-
-        elif command in ['vomit','barf','shit','poop']:
-
-          try:
-            if len(command_args) > 0:
-              message = '%s %ss all over %s. Gross!' % (user_name, command, command_args)
-            else:
-              message = '%s %ss all over the place. Gross!' % (user_name, command,)
-          except:
-            pass
-
-        elif command == 'sandwich':
-
-          try:
-            if len(command_args) > 0:
-              message = '%s makes a tasty sandwich for %s' % (user_name, command_args)
-            else:
-              message = 'FlowBot makes a tasty sandwich for %s' % user_name
-          except:
-            pass
-
-        elif command == 'chuck':
-
-          try:
-            message = requests.get('http://api.icndb.com/jokes/random').json().get('value',{}).get('joke','')
-          except:
-            pass
-
-        if len(message) > 0:
-          postMessageToFlow(flow_name, message, thread_id)
+      if len(message) > 0:
+        postMessageToFlow(flow_name, message, thread_id)
