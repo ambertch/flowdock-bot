@@ -80,6 +80,7 @@ for data in gen:
         user_name = 'FlowBot'
         command = ''
         command_args = ''
+        message = ''
 
         try:
           command = data.get('content','')[1:]
@@ -105,7 +106,6 @@ for data in gen:
 
           try:
             message = getGiphyUrlFromTag(command_args)
-            postMessageToFlow(flow_name, message, thread_id)
           except:
             pass
 
@@ -113,7 +113,6 @@ for data in gen:
 
           try:
             message = '%s rolled: %s' % (user_name, random.randint(0, 100),)
-            postMessageToFlow(flow_name, message, thread_id)
           except:
             pass
 
@@ -124,7 +123,6 @@ for data in gen:
               message = '%s bursts into dance with %s~' % (user_name, command_args)
             else:
               message = '%s bursts into dance~' % (user_name,)
-            postMessageToFlow(flow_name, message, thread_id)
           except:
             pass
 
@@ -135,30 +133,25 @@ for data in gen:
               message = '%s %ss all over %s. Gross!' % (user_name, command, command_args)
             else:
               message = '%s %ss all over the place. Gross!' % (user_name, command,)
-            postMessageToFlow(flow_name, message, thread_id)
           except:
             pass
 
         elif command == 'sandwich':
 
           try:
-
             if len(command_args) > 0:
               message = '%s makes a tasty sandwich for %s' % (user_name, command_args)
             else:
               message = 'FlowBot makes a tasty sandwich for %s' % user_name
-
-            postMessageToFlow(flow_name, message, thread_id)
           except:
             pass
 
         elif command == 'chuck':
 
           try:
-
             message = requests.get('http://api.icndb.com/jokes/random').json().get('value',{}).get('joke','')
-
-            if message:
-              postMessageToFlow(flow_name, message, thread_id)
           except:
             pass
+
+        if len(message) > 0:
+          postMessageToFlow(flow_name, message, thread_id)
