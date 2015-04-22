@@ -120,7 +120,10 @@ for data in gen:
         elif command == 'dance':
 
           try:
-            message = '%s bursts into dance~' % (user_name,)
+            if len(command_args) > 0:
+              message = '%s bursts into dance with %s~' % (user_name, command_args)
+            else:
+              message = '%s bursts into dance~' % (user_name,)
             postMessageToFlow(flow_name, message, thread_id)
           except:
             pass
@@ -128,7 +131,10 @@ for data in gen:
         elif command in ['vomit','barf','shit','poop']:
 
           try:
-            message = '%s %ss all over the place. Gross!' % (user_name, command,)
+            if len(command_args) > 0:
+              message = '%s %ss all over %s. Gross!' % (user_name, command, command_args)
+            else:
+              message = '%s %ss all over the place. Gross!' % (user_name, command,)
             postMessageToFlow(flow_name, message, thread_id)
           except:
             pass
