@@ -125,18 +125,10 @@ for data in gen:
           except:
             pass
 
-        elif command == 'vomit':
+        elif command in ['vomit','barf','shit','poop']:
 
           try:
-            message = '%s vomits all over the place. Gross' % user_name
-            postMessageToFlow(flow_name, message, thread_id)
-          except:
-            pass
-
-        elif command == 'shit':
-
-          try:
-            message = '%s shits all over the place. Gross' % user_name
+            message = '%s %ss all over the place. Gross!' % (user_name, command,)
             postMessageToFlow(flow_name, message, thread_id)
           except:
             pass
