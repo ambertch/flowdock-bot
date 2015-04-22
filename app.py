@@ -124,3 +124,32 @@ for data in gen:
             postMessageToFlow(flow_name, message, thread_id)
           except:
             pass
+
+        elif command == 'vomit':
+
+          try:
+            message = '%s vomits all over the place. Gross' % user_name
+            postMessageToFlow(flow_name, message, thread_id)
+          except:
+            pass
+
+        elif command == 'shit':
+
+          try:
+            message = '%s shits all over the place. Gross' % user_name
+            postMessageToFlow(flow_name, message, thread_id)
+          except:
+            pass
+
+        elif command == 'sandwich':
+
+          try:
+
+            if len(command_args) > 0:
+              message = '%s makes a tasty sandwich for %s' % (user_name, command_args)
+            else:
+              message = 'FlowBot makes a tasty sandwich for %s' % user_name
+
+            postMessageToFlow(flow_name, message, thread_id)
+          except:
+            pass
