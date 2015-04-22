@@ -151,3 +151,14 @@ for data in gen:
             postMessageToFlow(flow_name, message, thread_id)
           except:
             pass
+
+        elif command == 'chuck':
+
+          try:
+
+            message = requests.get('http://api.icndb.com/jokes/random').json().get('value',{}).get('joke','')
+
+            if message:
+              postMessageToFlow(flow_name, message, thread_id)
+          except:
+            pass
