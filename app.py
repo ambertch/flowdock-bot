@@ -4,6 +4,8 @@ import urllib
 import random
 import yaml
 
+from qdb import QuoteParser
+
 fd = open('./config.yml','r')
 config_yml = yaml.load(fd)
 fd.close()
@@ -11,6 +13,7 @@ fd.close()
 api_token = config_yml.get('FLOWDOCK',{}).get('API_TOKEN')
 
 random_giphy = 'http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC'
+random_qdb = 'http://qdb.us/qdb.xml?action=random&fixed=0&client=github.com/keyosk/flowdock-bot'
 
 # Incase of emergency
 
@@ -68,6 +71,24 @@ def getGiphyUrlFromTag(tag):
   return giphy
 
 
+qdb_parser = QuoteParser()
+
+def getRandomQuote():
+  try:
+    # Raises StopIteration
+    quote = qdb_parser.getRandomQuote()
+  except:
+    try:
+      # Who knows what could happen here? Connection issues, parser issues...
+      qdb_parser.parse(requests.get(random_qdb))
+      quote = qdb_parser.getRandomQuote()
+    except BaseException as e:
+      quote = 'Failed to find something funny. Whoops.'
+      print 'QDB Error: <%s>: %s' % (type(e).__name__, e)
+
+  return quote
+
+
 stream = JSONStream(api_token)
 gen = stream.fetch(fetch_flows)
 
@@ -106,6 +127,13 @@ for data in gen:
 
         try:
           message = getGiphyUrlFromTag(command_args)
+        except:
+          pass
+
+      elif command == 'qdb':
+
+        try:
+          message = getRandomQuote()
         except:
           pass
 
