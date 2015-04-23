@@ -15,19 +15,21 @@ api_token = config_yml.get('FLOWDOCK',{}).get('API_TOKEN')
 random_giphy = 'http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC'
 random_qdb = 'http://qdb.us/qdb.xml?action=random&fixed=0&client=github.com/keyosk/flowdock-bot'
 
-# Incase of emergency
-
-# requests.delete('https://<API_TOKEN>:blarg@api.flowdock.com/flows/<ORG>/<FLOW_NAME>/messages/<MESSAGE_ID>')
+flowdock_base_url = 'https://%s:a@api.flowdock.com/' % (api_token,)
 
 org = config_yml.get('FLOWDOCK',{}).get('ORGANIZATION')
 
+# Incase of emergency
+
+# requests.delete('%s/flows/%s/<FLOW_NAME>/messages/<MESSAGE_ID>' % (flowdock_base_url, org))
+
 fetch_flows = ['%s/%s' % (org, flow,) for flow in config_yml.get('FLOWDOCK',{}).get('FLOWS',[])]
 
-flows = requests.get('https://%s:blarg@api.flowdock.com/flows' % api_token).json()
-users = requests.get('https://%s:blarg@api.flowdock.com/users' % api_token).json()
+flows = requests.get('%s/flows' % flowdock_base_url).json()
+users = requests.get('%s/users' % flowdock_base_url).json()
 
 def getFlowNameFromId(id):
-  return [x for x in flows if x['id'] == id][0]['parameterized_name']
+  return [x for x in flows if x['id'] == id][0].get('parameterized_name','')
 
 def getUserNameFromID(id):
   return [x for x in users if x['id'] == id][0].get('nick','')
@@ -44,7 +46,7 @@ def postMessageToFlow(flow_name, content, thread_id = None):
     if thread_id != None:
       message_data['thread_id'] = thread_id
 
-    requests.post('https://%s:blarg@api.flowdock.com/flows/%s/%s/messages' % (api_token, org, flow_name, ), data = message_data)
+    requests.post('%s/flows/%s/%s/messages' % (flowdock_base_url, org, flow_name, ), data = message_data)
 
   except:
     pass
@@ -70,7 +72,6 @@ def getGiphyUrlFromTag(tag):
 
   return giphy
 
-
 qdb_parser = QuoteParser()
 
 def getRandomQuote():
@@ -80,7 +81,7 @@ def getRandomQuote():
   except:
     try:
       # Who knows what could happen here? Connection issues, parser issues...
-      qdb_parser.parse(requests.get(random_qdb))
+      qdb_parser.parse(str(requests.get(random_qdb).text))
       quote = qdb_parser.getRandomQuote()
     except BaseException as e:
       quote = 'Failed to find something funny. Whoops.'
@@ -88,98 +89,95 @@ def getRandomQuote():
 
   return quote
 
-
-stream = JSONStream(api_token)
-gen = stream.fetch(fetch_flows)
+gen = JSONStream(api_token).fetch(fetch_flows)
 
 for data in gen:
-  if isinstance(data, dict):
-    if data.get('event','') == 'message':
+  if isinstance(data, dict) and data.get('event','') == 'message':
 
-      thread_id = data.get('thread_id', None)
-      flow_name = 'main'
-      user_name = 'FlowBot'
-      command = ''
-      command_args = ''
-      message = ''
+    thread_id = data.get('thread_id', None)
+    flow_name = 'main'
+    user_name = 'FlowBot'
+    command = ''
+    command_args = ''
+    message = ''
+
+    try:
+      command = data.get('content','')[1:]
+      command_args = command.split(' ', 1)
+      if len(command_args) > 1:
+        command = command_args[0]
+        command_args = command_args[1]
+      else:
+        command_args = ''
+    except:
+      pass
+
+    if (len(command) == 0):
+      continue
+
+    try:
+      flow_name = getFlowNameFromId(data.get('flow'))
+      user_name = getUserNameFromID(int(data.get('user')))
+    except:
+      pass
+
+    if command == 'giphy':
 
       try:
-        command = data.get('content','')[1:]
-        command_args = command.split(' ', 1)
-        if len(command_args) > 1:
-          command = command_args[0]
-          command_args = command_args[1]
-        else:
-          command_args = ''
+        message = getGiphyUrlFromTag(command_args)
       except:
         pass
 
-      if (len(command) == 0):
-        continue
+    elif command == 'roll':
 
       try:
-        flow_name = getFlowNameFromId(data.get('flow'))
-        user_name = getUserNameFromID(int(data.get('user')))
+        message = '%s rolled: %s' % (user_name, random.randint(0, 100),)
       except:
         pass
 
-      if command == 'giphy':
-
-        try:
-          message = getGiphyUrlFromTag(command_args)
-        except:
-          pass
-
-      elif command == 'qdb':
+    elif command == 'qdb':
 
         try:
           message = getRandomQuote()
         except:
           pass
 
-      elif command == 'roll':
+    elif command == 'dance':
 
-        try:
-          message = '%s rolled: %s' % (user_name, random.randint(0, 100),)
-        except:
-          pass
+      try:
+        if len(command_args) > 0:
+          message = '%s bursts into dance with %s~' % (user_name, command_args)
+        else:
+          message = '%s bursts into dance~' % (user_name,)
+      except:
+        pass
 
-      elif command == 'dance':
+    elif command in ['vomit','barf','shit','poop']:
 
-        try:
-          if len(command_args) > 0:
-            message = '%s bursts into dance with %s~' % (user_name, command_args)
-          else:
-            message = '%s bursts into dance~' % (user_name,)
-        except:
-          pass
+      try:
+        if len(command_args) > 0:
+          message = '%s %ss all over %s. Gross!' % (user_name, command, command_args)
+        else:
+          message = '%s %ss all over the place. Gross!' % (user_name, command,)
+      except:
+        pass
 
-      elif command in ['vomit','barf','shit','poop']:
+    elif command == 'sandwich':
 
-        try:
-          if len(command_args) > 0:
-            message = '%s %ss all over %s. Gross!' % (user_name, command, command_args)
-          else:
-            message = '%s %ss all over the place. Gross!' % (user_name, command,)
-        except:
-          pass
+      try:
+        if len(command_args) > 0:
+          message = '%s makes a tasty sandwich for %s' % (user_name, command_args)
+        else:
+          message = 'FlowBot makes a tasty sandwich for %s' % user_name
+      except:
+        pass
 
-      elif command == 'sandwich':
+    elif command == 'chuck':
 
-        try:
-          if len(command_args) > 0:
-            message = '%s makes a tasty sandwich for %s' % (user_name, command_args)
-          else:
-            message = 'FlowBot makes a tasty sandwich for %s' % user_name
-        except:
-          pass
+      try:
+        message = requests.get('http://api.icndb.com/jokes/random').json().get('value',{}).get('joke','')
+      except:
+        pass
 
-      elif command == 'chuck':
-
-        try:
-          message = requests.get('http://api.icndb.com/jokes/random').json().get('value',{}).get('joke','')
-        except:
-          pass
-
-      if len(message) > 0:
-        postMessageToFlow(flow_name, message, thread_id)
+    if len(message) > 0:
+      postMessageToFlow(flow_name, message, thread_id)
