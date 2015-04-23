@@ -1,3 +1,4 @@
+defusedxml==0.4.1
 requests==2.6.0
 pyflowdock==0.3.35
 PyYAML==3.10
