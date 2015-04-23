@@ -172,6 +172,12 @@ for data in gen:
       except:
         pass
 
+    elif command == 'kegerator_instructions':
+      message = 'Use /keg_pour to operate the PubNub kegerator.'
+
+    elif commdn == 'keg_pour':
+      message = 'the kegerator has decided to rick roll you.'
+
     elif command == 'chuck':
 
       try:
