@@ -1,23 +1,24 @@
 from defusedxml import sax
+from xml.sax.handler import ContentHandler
 import htmlentitydefs
 import re
 
 HTML_RE = re.compile(r'<.+?>')
 HTML_ENT_RE = re.compile(r'&(\w+);')
 
-def indent(self, string):
+def indent(string):
   return '\n'.join(map(lambda x: '    ' + x, string.split('\n')))
 
-def stripHtml(self, string):
+def stripHtml(string):
   return HTML_RE.sub('', string)
 
-def decodeHtmlEntities(self, string):
+def decodeHtmlEntities(string):
   return HTML_ENT_RE.sub(
     lambda x: unichr(htmlentitydefs.name2codepoint[x.group(1)]),
     string
   )
 
-class QuoteParser(sax.handler.ContentHandler):
+class QuoteParser(ContentHandler):
   # Cache some funny stuff
   quotes = []
   stepper = iter(quotes)
