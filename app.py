@@ -135,7 +135,7 @@ for data in gen:
       except:
         pass
 
-    elif command == 'qdb':
+    elif command == 'qdb' and flow_name != 'main':
 
         try:
           message = getRandomQuote()
